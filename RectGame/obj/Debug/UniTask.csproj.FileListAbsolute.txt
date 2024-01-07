@@ -226,7 +226,6 @@ C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.Ve
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.VFXModule.dll
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.VideoModule.dll
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.VRModule.dll
-C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.WebGLModule.dll
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.WindModule.dll
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.XRModule.dll
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\unityplastic.dll
@@ -303,7 +302,6 @@ C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.VF
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.VRModule.xml
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.VehiclesModule.xml
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.VideoModule.xml
-C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.WebGLModule.pdb
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.WindModule.xml
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEngine.XRModule.xml
 C:\Users\USER\Desktop\My\RectGame\RectGame\Temp\Bin\Debug\UniTask\UnityEditor.xml

@@ -13,6 +13,7 @@ public partial class GameManager
    public enum State
    {
       Auth,
+      ResourceCheck,
       GameWait,
       GameInit,
       Game,
@@ -21,8 +22,9 @@ public partial class GameManager
    
    [SerializeField] private bool isDebug = true;
    [SerializeField] private State state = State.Auth;
-   [Space] 
-   [SerializeField] private CardSpawnHandler cardSpawnHandler;
+ 
+   private CardSpawnHandler _cardSpawnHandler;
+   private DownloadHandler _downloadHandler;
    
    public void ChangeState(State newState)
    {
@@ -32,6 +34,9 @@ public partial class GameManager
       {
          case State.Auth:
             Auth();
+            break;
+         case State.ResourceCheck:
+            ResourceCheck();
             break;
          case State.GameWait:
             GameWait();
@@ -50,40 +55,43 @@ public partial class GameManager
       }
    }
 
-   private void Auth()
+   private async void Auth()
    {
+      await UniTask.WhenAll();
+      
       if(isDebug)
-         ChangeState(State.GameWait);
+         ChangeState(State.ResourceCheck);
+   }
+
+   private async void ResourceCheck()
+   {
+      await UniTask.WhenAll(_downloadHandler.BackSpriteDownloadAsync());
+      
+      ChangeState(State.GameWait);
    }
 
    private async void GameWait()
    {
-      await UniTask.WhenAll(
-         cardSpawnHandler.GameWait()
-         );
+      var totalCount = await UniTask.WhenAll(_cardSpawnHandler.CardAddOnly());
       
-      // edit
       ChangeState(State.GameInit);
    }
 
    private async void GameInit()
    {
-      await UniTask.WhenAll(
-         cardSpawnHandler.GameInit()
-         );
-       
-      
+      var backSprite = await UniTask.WhenAll(_cardSpawnHandler.CardInit());
+         
       ChangeState(State.Game);
    }
 
-   private void Game()
+   private async void Game()
    {
-      
+      await UniTask.WhenAll();
    }
 
-   private void GameResult()
+   private async void GameResult()
    {
-      
+      await UniTask.WhenAll();
    }
 }
 
@@ -91,7 +99,8 @@ public partial class GameManager
 {
    private void Awake()
    {
-      cardSpawnHandler ??= FindObjectOfType<CardSpawnHandler>();
+      _cardSpawnHandler = FindObjectOfType<CardSpawnHandler>();
+      _downloadHandler = FindObjectOfType<DownloadHandler>();
    }
 
    private void Start()

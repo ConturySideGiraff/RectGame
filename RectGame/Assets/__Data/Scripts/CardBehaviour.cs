@@ -1,21 +1,46 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CardBehaviour : Button
+public class CardBehaviour : MonoBehaviour
 {
-    private RectTransform _rt;
-
-    public bool ActiveInHierarchy => gameObject.activeInHierarchy;
+    private const float OpenTime = 1.0f;
+    private const float CloseTime = 0.5f;
     
-    protected override void Awake()
+    private RectTransform _rt;
+    private Button _button;
+    private Image _image;
+
+
+    private Sprite _frontSprite;
+    private Sprite _backSprite;
+    
+    private void Awake()
     {
+        _image = GetComponent<Image>();
+        _button = GetComponent<Button>();
         _rt = GetComponent<RectTransform>();
     }
 
-    public void GameInit()
+    public void Init(Sprite backSprite)
     {
+        _backSprite = backSprite;
+    }
+
+    public void VisualStart()
+    {
+        _image.sprite = _backSprite;
+        
         gameObject.SetActive(true);
+
+    }
+
+    public void VisualStop()
+    {
+        gameObject.SetActive(false);
     }
 }

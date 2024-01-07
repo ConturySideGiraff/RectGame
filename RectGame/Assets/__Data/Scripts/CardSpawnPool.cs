@@ -12,14 +12,15 @@ public class CardSpawnPool<T> where T : CardBehaviour
     [SerializeField] private List<T> poolList = new List<T>();
 
     public int Count => poolList.Count;
+
+    private Transform _currentLayerTransform;
     
-    public T Add(Transform layerTransform)
+    public T AddOnly(Transform layerTransform)
     {
-        var card = Object.Instantiate(prefab, layerTransform);
+        _currentLayerTransform = layerTransform;
         
-#if UNITY_EDITOR
+        var card = Object.Instantiate(prefab, layerTransform);
         card.name = $"card_{card.transform.GetSiblingIndex()}";
-#endif
         card.gameObject.SetActive(false);
 
         poolList.Add(card);
@@ -27,13 +28,20 @@ public class CardSpawnPool<T> where T : CardBehaviour
         return card;
     }
 
-    public T Spawn(Transform layerTransform)
+    public List<T> GetSpawnList(int count)
     {
-        foreach (var t in poolList.Where(t => !t.ActiveInHierarchy))
+        var requireCount = Count - count;
+
+        if (requireCount > 0)
         {
-            return t;
+            return poolList.GetRange(0, count);
+        }
+        
+        foreach (var i in Enumerable.Range(0, requireCount))
+        {
+            AddOnly(_currentLayerTransform);
         }
 
-        return Add(layerTransform);
+        return poolList;
     }
 }

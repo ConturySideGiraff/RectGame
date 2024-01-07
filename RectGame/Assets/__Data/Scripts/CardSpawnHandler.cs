@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class CardSpawnHandler : MonoBehaviour
 {
@@ -15,21 +16,20 @@ public class CardSpawnHandler : MonoBehaviour
     
     private int TotalCount => xLen * yLen;
 
-    /* CARD */
     [SerializeField] private CardSpawnPool<CardBehaviour> cardSpawnPool;
-    [SerializeField] private List<Sprite> cardSpriteList = new List<Sprite>();
+    [SerializeField] private List<Sprite> cardBackSpriteList = new List<Sprite>();
+    [SerializeField] private List<Sprite> cardFrontSpriteList = new List<Sprite>();
 
     private UIPageGame _cardUI;
     private Transform _cardLayerTr;
 
-    /* STATE */
-    public async UniTask GameWait()
+    public async UniTask<int> CardAddOnly()
     {
-        // get ui
+        // get ui, layer
         _cardUI ??= UIManager.Instance.GetPopup<UIPageGame>();
         _cardLayerTr = _cardUI.Layer(0);
         
-        // card count
+        // card count clamp
         _cardUI.GameWait(width, height, xLen, yLen,
             (xClampLen, yClampLen) =>
             {
@@ -37,24 +37,29 @@ public class CardSpawnHandler : MonoBehaviour
                 yLen = yClampLen;
             });
         
-        // card spawn
+        // card only spawn, active off, show back sprite
         var spawnCount = TotalCount - cardSpawnPool.Count;
         for (var i = 0; i < spawnCount; i++)
         {
-            _ = cardSpawnPool.Add(_cardLayerTr);
+            _ = cardSpawnPool.AddOnly(_cardLayerTr);
             await UniTask.Yield();
         }
+        
+        // card count
+        return TotalCount;
     }
 
-    public async UniTask GameInit()
+    public UniTask<int> CardInit()
     {
-        // card
-        for (var i = 0; i < TotalCount; i++)
+        // card active on
+        var spawnList = cardSpawnPool.GetSpawnList(TotalCount);
+        foreach (var card in spawnList)
         {
-            var card = cardSpawnPool.Spawn(_cardLayerTr);
-            card.GameInit();
-            
-            await UniTask.Yield();
+            card.Init(cardBackSpriteList[0]);
+            card.VisualStart();
         }
+        
+        // sprite
+        return UniTask.FromResult<int>(TotalCount);
     }
 }
