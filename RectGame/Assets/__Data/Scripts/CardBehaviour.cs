@@ -6,18 +6,20 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CardBehaviour : MonoBehaviour
+public class CardBehaviour : MonoBehaviour, ICardResult
 {
     private const float OpenTime = 1.0f;
     private const float CloseTime = 0.5f;
     
+    [SerializeField] private CardState state;
+
     private RectTransform _rt;
     private Button _button;
     private Image _image;
 
-
     private Sprite _frontSprite;
     private Sprite _backSprite;
+
     
     private void Awake()
     {
@@ -26,21 +28,40 @@ public class CardBehaviour : MonoBehaviour
         _rt = GetComponent<RectTransform>();
     }
 
-    public void Init(Sprite backSprite)
+    // func
+    public ICardResult Init(Sprite backSprite, Sprite frontSprite)
     {
         _backSprite = backSprite;
-    }
+        _frontSprite = frontSprite;
 
-    public void VisualStart()
+        return this;
+    }
+    
+    public void VisualStart(bool isCloseCard)
     {
-        _image.sprite = _backSprite;
+        _image.sprite = isCloseCard ? _backSprite : _frontSprite;
         
         gameObject.SetActive(true);
-
     }
 
-    public void VisualStop()
+    public void VisualEnd()
     {
         gameObject.SetActive(false);
+    }
+
+    // interface
+    public void OnResult()
+    {
+        
+    }
+
+    public void OnCorrect()
+    {
+       
+    }
+
+    public void OnFail()
+    {
+        
     }
 }

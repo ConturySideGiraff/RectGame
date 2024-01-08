@@ -537,7 +537,7 @@ Transform:
   m_Children:
   - {fileID: 96460341}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &470230778
 GameObject:
@@ -722,8 +722,8 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 100, y: 150}
-  m_Spacing: {x: 0, y: 0}
+  m_CellSize: {x: 150, y: 300}
+  m_Spacing: {x: 15, y: 30}
   m_Constraint: 1
   m_ConstraintCount: 2
 --- !u!1 &963194225
@@ -1099,7 +1099,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1463803182
 MonoBehaviour:
@@ -1113,10 +1113,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f7d20c6748193143ac1859eecbddcea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  xLen: 6
+  yLen: 6
   width: 150
   height: 300
-  xLen: 99
-  yLen: 99
   xSpace: 15
   ySpace: 30
   cardSpawnPool:
@@ -1131,6 +1131,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: f126324fd2486a641842ea5a8244c2d1, type: 3}
   - {fileID: 21300000, guid: b97c91e8b348f3f4ebdc11f5c82182cd, type: 3}
   - {fileID: 21300000, guid: 970324311431c794ca338446ea889948, type: 3}
+  - {fileID: 21300000, guid: 70a77abda853dd941a0c8debf1de9b04, type: 3}
+  - {fileID: 21300000, guid: e52ea25af699fd445b7046374f81a5b9, type: 3}
 --- !u!114 &1463803183
 MonoBehaviour:
   m_ObjectHideFlags: 0

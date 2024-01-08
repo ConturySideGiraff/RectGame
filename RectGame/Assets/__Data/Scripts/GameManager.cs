@@ -79,7 +79,7 @@ public partial class GameManager
 
    private async void GameInit()
    {
-      var backSprite = await UniTask.WhenAll(_cardSpawnHandler.CardInit());
+      var iResultList = await UniTask.WhenAll(_cardSpawnHandler.CardInit(false));
          
       ChangeState(State.Game);
    }

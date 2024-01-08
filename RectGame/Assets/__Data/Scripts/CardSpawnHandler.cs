@@ -4,27 +4,42 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
+
+public enum CardState
+{
+    Close,
+    Open,
+    Rotating,
+    Correct,
+}
+
+public interface ICardResult
+{
+    public void OnResult();
+    public void OnCorrect();
+    public void OnFail();
+}
 
 public class CardSpawnHandler : MonoBehaviour
 {
-    /* COUNT */
-    [SerializeField] private int width = 150;
-    [SerializeField] private int height = 300;
-    [Space]
     [SerializeField] private int xLen = 3;
     [SerializeField] private int yLen = 4;
+    [Space]
+    [SerializeField] private int width = 150;
+    [SerializeField] private int height = 300;
     [Space] 
     [SerializeField] private int xSpace = 15;
     [SerializeField] private int ySpace = 30;
-    private int TotalCount => xLen * yLen;
-
+    [Space]
     [SerializeField] private CardSpawnPool<CardBehaviour> cardSpawnPool;
     [SerializeField] private List<Sprite> cardBackSpriteList = new List<Sprite>();
     [SerializeField] private List<Sprite> cardFrontSpriteList = new List<Sprite>();
 
     private UIPageGame _cardUI;
     private Transform _cardLayerTr;
+
+    private int TotalCount => xLen * yLen;
 
     public async UniTask<int> CardAddOnly()
     {
@@ -33,12 +48,17 @@ public class CardSpawnHandler : MonoBehaviour
         _cardLayerTr = _cardUI.Layer(0);
         
         // card count clamp
-        _cardUI.GameWait(width, height, xLen, yLen,
+        var previousXLen = xLen;
+        var previousYLen = yLen;
+        
+        _cardUI.GameWait(xLen, yLen, width, height, xSpace, ySpace,
             (xClampLen, yClampLen) =>
             {
                 xLen = xClampLen;
                 yLen = yClampLen;
             });
+
+        Debug.Log($"card count : [{previousXLen},{previousYLen}] => [{xLen},{yLen}] = {xLen * yLen}");
         
         // card only spawn, active off, show back sprite
         var spawnCount = TotalCount - cardSpawnPool.Count;
@@ -52,17 +72,43 @@ public class CardSpawnHandler : MonoBehaviour
         return TotalCount;
     }
 
-    public UniTask<int> CardInit()
+    public UniTask<List<ICardResult>> CardInit(bool isCloseCard)
     {
+        // card front image pick
+        var frontPickSource = new List<int>();
+        
+        var requireCount = TotalCount / 2;
+        var spriteCount = cardFrontSpriteList.Count;
+        
+        var quo = requireCount / spriteCount;
+        var remain = requireCount % spriteCount;
+        
+        for(var i = 0; i < quo; i++) frontPickSource.AddRange(Util.GetNoneOverlapNumbers(spriteCount));
+        var remainPickSource = Util.GetNoneOverlapNumbers(spriteCount, remain);
+        for (var i = 0; i < remain; i++) frontPickSource.Add(remainPickSource[i]);
+
+        var frontPickList = new int[TotalCount];
+
+        
+        // card back image pick
+        var backPick = Random.Range(0, cardBackSpriteList.Count);
+
         // card active on
         var spawnList = cardSpawnPool.GetSpawnList(TotalCount);
-        foreach (var card in spawnList)
+        var iResultList = new List<ICardResult>();
+
+        for (var i = 0; i < spawnList.Count; i++)
         {
-            card.Init(cardBackSpriteList[0]);
-            card.VisualStart();
+            var card = spawnList[i];
+            var frontSprite = cardFrontSpriteList[frontPickSource[i]];
+            var backSprite = cardBackSpriteList[backPick];
+            var iResult = card.Init(backSprite, frontSprite);
+
+            card.VisualStart(isCloseCard);
+            iResultList.Add(iResult);
         }
-        
+
         // sprite
-        return UniTask.FromResult<int>(TotalCount);
+        return UniTask.FromResult<List<ICardResult>>(iResultList);
     }
 }
