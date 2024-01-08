@@ -9,11 +9,14 @@ using UnityEngine.Serialization;
 public class CardSpawnHandler : MonoBehaviour
 {
     /* COUNT */
-    [SerializeField] private int width = 200;
-    [SerializeField] private int height = 200;
+    [SerializeField] private int width = 150;
+    [SerializeField] private int height = 300;
+    [Space]
     [SerializeField] private int xLen = 3;
     [SerializeField] private int yLen = 4;
-    
+    [Space] 
+    [SerializeField] private int xSpace = 15;
+    [SerializeField] private int ySpace = 30;
     private int TotalCount => xLen * yLen;
 
     [SerializeField] private CardSpawnPool<CardBehaviour> cardSpawnPool;

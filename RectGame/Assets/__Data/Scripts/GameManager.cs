@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 public partial class GameManager : SingletonManager<GameManager>
@@ -24,7 +25,7 @@ public partial class GameManager
    [SerializeField] private State state = State.Auth;
  
    private CardSpawnHandler _cardSpawnHandler;
-   private DownloadHandler _downloadHandler;
+   private VersionHandler _versionHandler;
    
    public void ChangeState(State newState)
    {
@@ -59,13 +60,12 @@ public partial class GameManager
    {
       await UniTask.WhenAll();
       
-      if(isDebug)
-         ChangeState(State.ResourceCheck);
+      ChangeState(State.ResourceCheck);
    }
 
    private async void ResourceCheck()
    {
-      await UniTask.WhenAll(_downloadHandler.BackSpriteDownloadAsync());
+      await UniTask.WhenAll();
       
       ChangeState(State.GameWait);
    }
@@ -100,7 +100,7 @@ public partial class GameManager
    private void Awake()
    {
       _cardSpawnHandler = FindObjectOfType<CardSpawnHandler>();
-      _downloadHandler = FindObjectOfType<DownloadHandler>();
+      _versionHandler = FindObjectOfType<VersionHandler>();
    }
 
    private void Start()
