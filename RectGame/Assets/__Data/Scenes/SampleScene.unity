@@ -1113,12 +1113,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f7d20c6748193143ac1859eecbddcea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xLen: 99
-  yLen: 99
-  width: 150
-  height: 300
-  xSpace: 15
-  ySpace: 30
+  prevCard: {fileID: 0}
+  xLen: 4
+  yLen: 4
+  width: 100
+  height: 150
+  xSpace: 30
+  ySpace: 45
   cardSpawnPool:
     prefab: {fileID: 1698539419645787492, guid: d874460d8d15aa641aebfb977530cbe0, type: 3}
     poolList: []

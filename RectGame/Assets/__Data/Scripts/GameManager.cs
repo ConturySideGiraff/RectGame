@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
@@ -21,12 +22,13 @@ public partial class GameManager
       GameResult,
    }
    
-   [SerializeField] private State state = State.Auth;
+   [SerializeField] 
+   private State state = State.Auth;
  
-   private CardSpawnHandler _cardSpawnHandler;
+   private CardHandler _cardHandler;
    private VersionHandler _versionHandler;
    
-   public void ChangeState(State newState)
+   private void ChangeState(State newState)
    {
       state = newState;
 
@@ -71,23 +73,23 @@ public partial class GameManager
 
    private async void GameWait()
    {
-      var totalCount = await UniTask.WhenAll(_cardSpawnHandler.CardAddOnly());
+      _ = await UniTask.WhenAll(_cardHandler.CardAddOnly());
       
       ChangeState(State.GameInit);
    }
 
    private async void GameInit()
    {
-      var iResultList = await UniTask.WhenAll(_cardSpawnHandler.CardInit(false));
-         
+      _cardHandler.CardInit();
+
       ChangeState(State.Game);
    }
 
-   private async void Game()
+   private void Game()
    {
-      await UniTask.WhenAll();
+      
    }
-
+   
    private async void GameResult()
    {
       await UniTask.WhenAll();
@@ -98,7 +100,7 @@ public partial class GameManager
 {
    private void Awake()
    {
-      _cardSpawnHandler = FindObjectOfType<CardSpawnHandler>();
+      _cardHandler = FindObjectOfType<CardHandler>();
       _versionHandler = FindObjectOfType<VersionHandler>();
    }
 
