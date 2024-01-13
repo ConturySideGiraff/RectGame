@@ -21,7 +21,6 @@ public partial class GameManager
       GameResult,
    }
    
-   [SerializeField] private bool isDebug = true;
    [SerializeField] private State state = State.Auth;
  
    private CardSpawnHandler _cardSpawnHandler;

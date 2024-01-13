@@ -14,8 +14,11 @@ public enum CardState
     Correct,
 }
 
-public interface ICardResult
+public interface ICard
 {
+    public void Flip();
+    public void Rotating(bool isCloseCard);
+    
     public void OnResult();
     public void OnCorrect();
     public void OnFail();
@@ -72,32 +75,48 @@ public class CardSpawnHandler : MonoBehaviour
         return TotalCount;
     }
 
-    public UniTask<List<ICardResult>> CardInit(bool isCloseCard)
+    public UniTask<List<ICard>> CardInit(bool isCloseCard)
     {
         // card front image pick
-        var frontPickSource = new List<int>();
-        
-        var requireCount = TotalCount / 2;
-        var spriteCount = cardFrontSpriteList.Count;
-        
-        var quo = requireCount / spriteCount;
-        var remain = requireCount % spriteCount;
-        
-        for(var i = 0; i < quo; i++) frontPickSource.AddRange(Util.GetNoneOverlapNumbers(spriteCount));
-        var remainPickSource = Util.GetNoneOverlapNumbers(spriteCount, remain);
-        for (var i = 0; i < remain; i++) frontPickSource.Add(remainPickSource[i]);
+        List<int> frontPickSource = new List<int>();
 
-        var frontPickList = new int[TotalCount];
-
+        int totalCount = TotalCount;
+        int frontCount = cardFrontSpriteList.Count * 2;
         
+        int quo = totalCount / frontCount;
+        int remain = totalCount % frontCount;
+
+        for (int i = 0; i < quo; i++)
+        {
+            for (int j = 0; j < 2; j++)
+            {
+                int[] source = Util.GetNoneOverlapNumbers(cardFrontSpriteList.Count);
+                frontPickSource.AddRange(source);
+            }
+        }
+        
+        if (remain > 0)
+        {
+            int pickCount = remain / 2;
+            int[] source = Util.GetNoneOverlapNumbers(cardFrontSpriteList.Count, pickCount);
+
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < pickCount; j++)
+                {
+                    frontPickSource.Insert(frontPickSource.Count, source[j]);
+                }
+            }
+        }
+
         // card back image pick
         var backPick = Random.Range(0, cardBackSpriteList.Count);
 
         // card active on
         var spawnList = cardSpawnPool.GetSpawnList(TotalCount);
-        var iResultList = new List<ICardResult>();
+        var iResultList = new List<ICard>();
 
-        for (var i = 0; i < spawnList.Count; i++)
+        for (var i = 0; i < totalCount; i++)
         {
             var card = spawnList[i];
             var frontSprite = cardFrontSpriteList[frontPickSource[i]];
@@ -109,6 +128,6 @@ public class CardSpawnHandler : MonoBehaviour
         }
 
         // sprite
-        return UniTask.FromResult<List<ICardResult>>(iResultList);
+        return UniTask.FromResult<List<ICard>>(iResultList);
     }
 }
