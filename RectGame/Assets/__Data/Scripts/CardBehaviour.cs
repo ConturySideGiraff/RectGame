@@ -12,8 +12,8 @@ public class CardBehaviour : MonoBehaviour
     [SerializeField] 
     private CardState state;
     
-    private const float OpenTime = 1.0f;
-    private const float CloseTime = 0.5f;
+    public const float OpenTime = 1.0f;
+    public const float CloseTime = 0.5f;
     
     private RectTransform _rt;
     private Button _button;
@@ -23,12 +23,13 @@ public class CardBehaviour : MonoBehaviour
     private Sprite _backSprite;
 
     private Func<CardBehaviour, CardState> _onFlip;
+    private Action _onResult;
 
     public int Index { get; private set; }
 
     public CardState State => state;
     
-    public void Init(int index, Sprite backSprite, Sprite frontSprite, Func<CardBehaviour, CardState> onFlip)
+    public void Init(int index, Sprite backSprite, Sprite frontSprite, Func<CardBehaviour, CardState> onFlip, Action onResult)
     {
         Index = index;
 
@@ -43,6 +44,7 @@ public class CardBehaviour : MonoBehaviour
         _frontSprite = frontSprite;
 
         _onFlip = onFlip;
+        _onResult = onResult;
     }
 
     public void VisualStart(bool isCloseCard)
@@ -63,26 +65,26 @@ public class CardBehaviour : MonoBehaviour
 
         gameObject.SetActive(true);
     }
-    
-    public void OnCorrect()
-    {
-        state = CardState.Correct;
-    }
 
     private void FlipOpen()
     {
-        if (state != CardState.Close)
+        if (state != CardState.Close || !GameManager.Instance.IsCanFlip)
         {
             return;
         }
-        
-        Rotating(false);
-    }
 
-    public async void Rotating(bool isCloseCard)
-    {
         state = CardState.Rotating;
         
+        _ = Rotating(false);
+    }
+
+    public async UniTask FlipClose()
+    {
+        await Rotating(true);
+    }
+
+    private async UniTask Rotating(bool isCloseCard)
+    {
         Quaternion startRot, endRot;
         float halfTime, totalTime, percent;
         Sprite changeSprite;
@@ -116,7 +118,7 @@ public class CardBehaviour : MonoBehaviour
         {
             percent = t / totalTime;
             transform.localRotation = Quaternion.Lerp(startRot, endRot, percent);
-            await Task.Yield();
+            await UniTask.Yield();
         }
 
         _image.sprite = changeSprite;
@@ -125,14 +127,11 @@ public class CardBehaviour : MonoBehaviour
         {
             percent = t / totalTime;
             transform.localRotation = Quaternion.Lerp(startRot, endRot, percent);
-            await Task.Yield();
-        }
-
-        if (state == CardState.Correct)
-        {
-            return;
+            await UniTask.Yield();
         }
 
         state = changeState;
+        
+        _onResult.Invoke();
     }
 }

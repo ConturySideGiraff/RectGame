@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public partial class GameManager : SingletonManager<GameManager>
 {
@@ -12,7 +13,7 @@ public partial class GameManager : SingletonManager<GameManager>
 
 public partial class GameManager
 {
-   public enum State
+   public enum GameState
    {
       Auth,
       ResourceCheck,
@@ -22,34 +23,38 @@ public partial class GameManager
       GameResult,
    }
    
-   [SerializeField] 
-   private State state = State.Auth;
- 
+   [Header("[ Debug ]")]
+   [SerializeField] private GameState state = GameState.Auth;
+   [SerializeField] private int currentCount;
+   [SerializeField] private int targetCount;
+   
    private CardHandler _cardHandler;
    private VersionHandler _versionHandler;
    
-   private void ChangeState(State newState)
+   //
+   
+   private void ChangeState(GameState newGameState)
    {
-      state = newState;
+      state = newGameState;
 
       switch (state)
       {
-         case State.Auth:
+         case GameState.Auth:
             Auth();
             break;
-         case State.ResourceCheck:
+         case GameState.ResourceCheck:
             ResourceCheck();
             break;
-         case State.GameWait:
+         case GameState.GameWait:
             GameWait();
             break;
-         case State.GameInit:
+         case GameState.GameInit:
             GameInit();
             break;
-         case State.Game:
+         case GameState.Game:
             Game();
             break;
-         case State.GameResult:
+         case GameState.GameResult:
             GameResult();
             break;
          default:
@@ -61,28 +66,32 @@ public partial class GameManager
    {
       await UniTask.WhenAll();
       
-      ChangeState(State.ResourceCheck);
+      ChangeState(GameState.ResourceCheck);
    }
 
    private async void ResourceCheck()
    {
       await UniTask.WhenAll();
       
-      ChangeState(State.GameWait);
+      ChangeState(GameState.GameWait);
    }
 
    private async void GameWait()
    {
-      _ = await UniTask.WhenAll(_cardHandler.CardAddOnly());
+      var cardCount = await UniTask.WhenAll(_cardHandler.CardAddOnly());
+
+      targetCount = cardCount[0] / 2;
       
-      ChangeState(State.GameInit);
+      ChangeState(GameState.GameInit);
    }
 
    private async void GameInit()
    {
       _cardHandler.CardInit();
 
-      ChangeState(State.Game);
+      currentCount = 0;
+      
+      ChangeState(GameState.Game);
    }
 
    private void Game()
@@ -98,6 +107,16 @@ public partial class GameManager
 
 public partial class GameManager
 {
+   public bool IsCanFlip => _cardHandler.IsCanFlip;
+
+   public void OnCorrect()
+   {
+      currentCount += 1;
+   }
+}
+
+public partial class GameManager
+{
    private void Awake()
    {
       _cardHandler = FindObjectOfType<CardHandler>();
@@ -106,6 +125,6 @@ public partial class GameManager
 
    private void Start()
    {
-      ChangeState(State.Auth);
+      ChangeState(GameState.Auth);
    }
 }

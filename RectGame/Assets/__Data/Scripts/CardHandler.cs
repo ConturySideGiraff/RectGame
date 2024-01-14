@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public enum CardState
@@ -17,8 +18,9 @@ public enum CardState
 
 public class CardHandler : MonoBehaviour
 {
-    [Header("[ Debug ]")]    
+    [Header("[ Debug ]")]
     [SerializeField] private CardBehaviour prevCard;
+    [SerializeField] private CardBehaviour nowCard;
     
     [Header("[ Data Option ]")]
     [SerializeField] private int xLen = 3;
@@ -33,11 +35,18 @@ public class CardHandler : MonoBehaviour
     [SerializeField] private CardSpawnPool<CardBehaviour> cardSpawnPool;
     [SerializeField] private List<Sprite> cardBackSpriteList = new List<Sprite>();
     [SerializeField] private List<Sprite> cardFrontSpriteList = new List<Sprite>();
-
+    
+    //
+    
     private UIPageGame _cardUI;
     private Transform _cardLayerTr;
+
+    //
     
+    public bool IsCanFlip =>  nowCard == null;
     private int TotalCount => xLen * yLen;
+    
+    //
     
     public async UniTask<int> CardAddOnly()
     {
@@ -116,7 +125,7 @@ public class CardHandler : MonoBehaviour
             var frontSprite = cardFrontSpriteList[index];
             var backSprite = cardBackSpriteList[backPick];
             
-            card.Init(index, backSprite, frontSprite, OnFlip);
+            card.Init(index, backSprite, frontSprite, OnFlip, OnResult);
             card.VisualStart(true);
         }
     }
@@ -128,17 +137,36 @@ public class CardHandler : MonoBehaviour
         if (prevCard == null)
         {
             prevCard = nowCard;
+            
             return result;
         }
+        
+        this.nowCard = nowCard;
 
-        if (prevCard.Index == nowCard.Index)
-        {
-            prevCard.OnCorrect();
-            result = CardState.Correct;
-        }
-
-        prevCard = null;
+        result = prevCard.Index == nowCard.Index ? CardState.Correct : CardState.Fail;
       
         return result;
+    }
+
+    private void OnResult()
+    {
+        if (prevCard == null || nowCard == null)
+        {
+            return;
+        }
+
+        if (prevCard.State == CardState.Rotating || nowCard.State == CardState.Rotating)
+        {
+            return;
+        }
+
+        if (nowCard.State == CardState.Fail || prevCard.State == CardState.Fail)
+        {
+            _ = prevCard.FlipClose();
+            _ = nowCard.FlipClose();
+        }
+        
+        prevCard = null;
+        nowCard = null;
     }
 }
