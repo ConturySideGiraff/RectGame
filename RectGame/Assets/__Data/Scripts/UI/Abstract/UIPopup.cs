@@ -4,5 +4,7 @@ using UnityEngine;
 
 public abstract class UIPopup : UIPage
 {
-  
+    public void On() => gameObject.SetActive(true);
+
+    public void Off() => gameObject.SetActive(false);
 }

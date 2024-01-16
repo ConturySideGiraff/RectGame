@@ -50,4 +50,13 @@ public static class Util
 
         return result;
     }
+
+    public static int Factorial(int n)
+    {
+        if (n == 0) return 0;
+        int result = 1;
+        for (int i = 1; i <= n; i++) result *= i;
+        Debug.Log(result);
+        return result;
+    }
 }

@@ -38,7 +38,7 @@ public class CardHandler : MonoBehaviour
     
     //
     
-    private UIPageGame _cardUI;
+    private UIGame _cardUI;
     private Transform _cardLayerTr;
 
     //
@@ -47,24 +47,28 @@ public class CardHandler : MonoBehaviour
     private int TotalCount => xLen * yLen;
     
     //
-    
-    public async UniTask<int> CardAddOnly()
+
+    private void Awake()
+    {
+        _cardUI = UIManager.Instance.GetDisplay<UIGame>();
+    }
+
+    public async UniTask<GameData> CardAddOnly()
     {
         // get ui, layer
-        _cardUI ??= UIManager.Instance.GetPopup<UIPageGame>();
         _cardLayerTr = _cardUI.Layer(0);
         
         // card count clamp
         var previousXLen = xLen;
         var previousYLen = yLen;
         
-        _cardUI.GameWait(xLen, yLen, width, height, xSpace, ySpace,
+        _cardUI.ClampCount(xLen, yLen, width, height, xSpace, ySpace,
             (xClampLen, yClampLen) =>
             {
                 xLen = xClampLen;
                 yLen = yClampLen;
             });
-
+        
         Debug.Log($"card count : [{previousXLen},{previousYLen}] => [{xLen},{yLen}] = {xLen * yLen}");
         
         // card only spawn, active off, show back sprite
@@ -76,7 +80,7 @@ public class CardHandler : MonoBehaviour
         }
         
         // card count
-        return TotalCount;
+        return new GameData(xLen, yLen);
     }
 
     public void CardInit()
@@ -125,47 +129,56 @@ public class CardHandler : MonoBehaviour
             var frontSprite = cardFrontSpriteList[index];
             var backSprite = cardBackSpriteList[backPick];
             
-            card.Init(index, backSprite, frontSprite, OnFlip, OnResult);
+            card.InitComponent(index, backSprite, frontSprite, OnFlip, OnResult);
             card.VisualStart(true);
         }
     }
     
-    private CardState OnFlip(CardBehaviour nowCard)
+    private CardState OnFlip(CardBehaviour card)
     {
         var result = CardState.Open;
 
         if (prevCard == null)
         {
-            prevCard = nowCard;
+            prevCard = card;
             
             return result;
         }
         
-        this.nowCard = nowCard;
+        nowCard = card;
 
-        result = prevCard.Index == nowCard.Index ? CardState.Correct : CardState.Fail;
+        result = prevCard.Index == card.Index ? CardState.Correct : CardState.Fail;
       
         return result;
     }
 
-    private void OnResult()
+    private void OnResult(CardState state)
     {
-        if (prevCard == null || nowCard == null)
-        {
+        if (prevCard == null)
             return;
-        }
 
-        if (prevCard.State == CardState.Rotating || nowCard.State == CardState.Rotating)
+        switch (state)
         {
-            return;
+            case CardState.Close:
+            case CardState.Open:
+            case CardState.Rotating:
+                return;
+            case CardState.Correct:
+                _ = GameManager.Instance.OnWin();
+                OnCardNull();
+                break;
+            case CardState.Fail:
+                _ = prevCard.FlipClose();
+                _ = nowCard.FlipClose();
+                OnCardNull();
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(state), state, null);
         }
+    }
 
-        if (nowCard.State == CardState.Fail || prevCard.State == CardState.Fail)
-        {
-            _ = prevCard.FlipClose();
-            _ = nowCard.FlipClose();
-        }
-        
+    private void OnCardNull()
+    {
         prevCard = null;
         nowCard = null;
     }

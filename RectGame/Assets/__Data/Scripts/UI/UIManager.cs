@@ -9,4 +9,10 @@ public class UIManager : SingletonManager<UIManager>
     [SerializeField] private List<UIDisplay> uiDisplayList = new List<UIDisplay>();
     
     public T GetPopup<T>() where T : UIPopup => uiPopupList.FirstOrDefault(t => t.GetType() == typeof(T)) as T;
+    public T GetDisplay<T>() where T : UIDisplay => uiDisplayList.FirstOrDefault(t => t.GetType() == typeof(T)) as T;
+
+    public void OffPopupAll()
+    {
+        uiPopupList.ForEach(p => p.Off());
+    }
 }

@@ -12,8 +12,8 @@ public class CardBehaviour : MonoBehaviour
     [SerializeField] 
     private CardState state;
     
-    public const float OpenTime = 1.0f;
-    public const float CloseTime = 0.5f;
+    private const float OpenTime = 1.0f;
+    private const float CloseTime = 0.5f;
     
     private RectTransform _rt;
     private Button _button;
@@ -23,13 +23,11 @@ public class CardBehaviour : MonoBehaviour
     private Sprite _backSprite;
 
     private Func<CardBehaviour, CardState> _onFlip;
-    private Action _onResult;
+    private Action<CardState> _onResult;
 
     public int Index { get; private set; }
-
-    public CardState State => state;
     
-    public void Init(int index, Sprite backSprite, Sprite frontSprite, Func<CardBehaviour, CardState> onFlip, Action onResult)
+    public void InitComponent(int index, Sprite backSprite, Sprite frontSprite, Func<CardBehaviour, CardState> onFlip, Action<CardState> onResult)
     {
         Index = index;
 
@@ -66,25 +64,27 @@ public class CardBehaviour : MonoBehaviour
         gameObject.SetActive(true);
     }
 
-    private void FlipOpen()
+    private async void FlipOpen()
     {
         if (state != CardState.Close || !GameManager.Instance.IsCanFlip)
         {
             return;
         }
 
-        state = CardState.Rotating;
+        state = await Rotating(false);
         
-        _ = Rotating(false);
+        _onResult.Invoke(state);
     }
 
     public async UniTask FlipClose()
     {
-        await Rotating(true);
+        state = await Rotating(true);
     }
 
-    private async UniTask Rotating(bool isCloseCard)
+    private async UniTask<CardState> Rotating(bool isCloseCard)
     {
+        state = CardState.Rotating;
+
         Quaternion startRot, endRot;
         float halfTime, totalTime, percent;
         Sprite changeSprite;
@@ -130,8 +130,6 @@ public class CardBehaviour : MonoBehaviour
             await UniTask.Yield();
         }
 
-        state = changeState;
-        
-        _onResult.Invoke();
+        return changeState;
     }
 }

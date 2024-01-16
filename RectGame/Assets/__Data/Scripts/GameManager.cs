@@ -9,10 +9,6 @@ using UnityEngine.Serialization;
 
 public partial class GameManager : SingletonManager<GameManager>
 {
-}
-
-public partial class GameManager
-{
    public enum GameState
    {
       Auth,
@@ -22,16 +18,30 @@ public partial class GameManager
       Game,
       GameResult,
    }
-   
+
+   private CardHandler _cardHandler;
+   private DataHandler _dataHandler;
+   private ScoreHandler _scoreHandler;
+   private VersionHandler _versionHandler;
+
+   private void Awake()
+   {
+      _cardHandler = FindObjectOfType<CardHandler>();
+      _dataHandler = FindObjectOfType<DataHandler>();
+      _scoreHandler = FindObjectOfType<ScoreHandler>();
+      _versionHandler = FindObjectOfType<VersionHandler>();
+   }
+
+   private void Start()
+   {
+      ChangeState(GameState.Auth);
+   }
+}
+
+public partial class GameManager
+{
    [Header("[ Debug ]")]
    [SerializeField] private GameState state = GameState.Auth;
-   [SerializeField] private int currentCount;
-   [SerializeField] private int targetCount;
-   
-   private CardHandler _cardHandler;
-   private VersionHandler _versionHandler;
-   
-   //
    
    private void ChangeState(GameState newGameState)
    {
@@ -64,23 +74,21 @@ public partial class GameManager
 
    private async void Auth()
    {
-      await UniTask.WhenAll();
+      UIManager.Instance.OffPopupAll();
       
       ChangeState(GameState.ResourceCheck);
    }
 
    private async void ResourceCheck()
    {
-      await UniTask.WhenAll();
-      
       ChangeState(GameState.GameWait);
    }
 
    private async void GameWait()
    {
-      var cardCount = await UniTask.WhenAll(_cardHandler.CardAddOnly());
-
-      targetCount = cardCount[0] / 2;
+      var gameData = await _cardHandler.CardAddOnly();
+      _ = _dataHandler.Init(gameData);
+      _ = _scoreHandler.Init(gameData.score, _dataHandler.OnScoreUpdate, OnLose);
       
       ChangeState(GameState.GameInit);
    }
@@ -88,20 +96,27 @@ public partial class GameManager
    private async void GameInit()
    {
       _cardHandler.CardInit();
-
-      currentCount = 0;
+      _dataHandler.Reset();
       
       ChangeState(GameState.Game);
    }
 
    private void Game()
    {
-      
+      _scoreHandler.SetReduce(true);
    }
    
    private async void GameResult()
    {
-      await UniTask.WhenAll();
+      _scoreHandler.SetReduce(false);
+      
+      if(_isWin)
+         Win();
+      else
+         Lose();
+
+      var uiResult = UIManager.Instance.GetPopup<UIResult>();
+      uiResult.On();
    }
 }
 
@@ -109,22 +124,37 @@ public partial class GameManager
 {
    public bool IsCanFlip => _cardHandler.IsCanFlip;
 
-   public void OnCorrect()
+   private bool _isWin;
+   
+   public bool OnWin()
    {
-      currentCount += 1;
+      _isWin = _dataHandler.OnCorrect();
+
+      if (_isWin) ChangeState(GameState.GameResult);
+
+      return _isWin;
+   }
+
+   // ReSharper disable Unity.PerformanceAnalysis
+   private void OnLose()
+   {
+      _isWin = false;
+      
+      ChangeState(GameState.GameResult);
+   }
+
+   private async void Win()
+   {
+      Debug.Log("win");
+   }
+
+   private async void Lose()
+   {
+      Debug.Log("lose");
    }
 }
 
 public partial class GameManager
 {
-   private void Awake()
-   {
-      _cardHandler = FindObjectOfType<CardHandler>();
-      _versionHandler = FindObjectOfType<VersionHandler>();
-   }
 
-   private void Start()
-   {
-      ChangeState(GameState.Auth);
-   }
 }
