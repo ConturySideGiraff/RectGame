@@ -72,14 +72,14 @@ public partial class GameManager
       }
    }
 
-   private async void Auth()
+   private void Auth()
    {
       UIManager.Instance.OffPopupAll();
       
       ChangeState(GameState.ResourceCheck);
    }
 
-   private async void ResourceCheck()
+   private void ResourceCheck()
    {
       ChangeState(GameState.GameWait);
    }
@@ -93,7 +93,7 @@ public partial class GameManager
       ChangeState(GameState.GameInit);
    }
 
-   private async void GameInit()
+   private void GameInit()
    {
       _cardHandler.CardInit();
       _dataHandler.Reset();
@@ -106,16 +106,25 @@ public partial class GameManager
       _scoreHandler.SetReduce(true);
    }
    
-   private async void GameResult()
+   private void GameResult()
    {
       _scoreHandler.SetReduce(false);
-      
-      if(_isWin)
-         Win();
-      else
-         Lose();
 
       var uiResult = UIManager.Instance.GetPopup<UIResult>();
+      var data = _dataHandler.GetData(this);
+
+      if (_isWin)
+      {
+         Win();
+         uiResult.Win(ref data);
+      }
+
+      else
+      {
+         Lose();
+         uiResult.Lose(ref data);
+      }
+      
       uiResult.On();
    }
 }
@@ -143,14 +152,14 @@ public partial class GameManager
       ChangeState(GameState.GameResult);
    }
 
-   private async void Win()
+   private void Win()
    {
-      Debug.Log("win");
+      
    }
 
-   private async void Lose()
+   private void Lose()
    {
-      Debug.Log("lose");
+      
    }
 }
 

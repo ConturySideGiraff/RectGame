@@ -6,6 +6,7 @@ public class DataHandler : MonoBehaviour
 {
     [SerializeField] private GameData gameData;
 
+    
     public GameData Init(int xLen, int yLen)
     {
         gameData.xLen = xLen;
@@ -17,6 +18,11 @@ public class DataHandler : MonoBehaviour
     public GameData Init(GameData data)
     {
         gameData = data;
+        return gameData;
+    }
+
+    public GameData GetData(Component sender)
+    {
         return gameData;
     }
 
