@@ -132,6 +132,9 @@ public class CardHandler : MonoBehaviour
             card.InitComponent(index, backSprite, frontSprite, OnFlip, OnResult);
             card.VisualStart(true);
         }
+        
+        // card null
+        OnCardNull();
     }
     
     private CardState OnFlip(CardBehaviour card)

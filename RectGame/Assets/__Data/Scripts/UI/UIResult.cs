@@ -6,10 +6,9 @@ using UnityEngine.UI;
 
 public class UIResult : UIPopup
 {
-    [SerializeField] private GameObject winObject;
+    [SerializeField] private Text gridText;
+    [SerializeField] private Text scoreText;
     [SerializeField] private Button reTryButton;
-    
-    [SerializeField] private GameObject loseObject;
 
     private void Awake()
     {
@@ -18,18 +17,22 @@ public class UIResult : UIPopup
 
     private void ReTry()
     {
-        
+        GameManager.Instance.ChangeState(this, GameManager.GameState.GameInit);
     }
-    
+
+    private void Common(ref GameData gameData)
+    {
+        gridText.text = $"{gameData.xLen} x {gameData.yLen}";
+        scoreText.text = $"{gameData.score:0.0}";
+    }
+
     public void Win(ref GameData gameData)
     {
-        winObject.SetActive(true);
-        loseObject.SetActive(false);        
+        Common(ref gameData);
     }
 
     public void Lose(ref GameData gameData)
     {
-        winObject.SetActive(false);
-        loseObject.SetActive(true);
+        Common(ref gameData);
     }
 }

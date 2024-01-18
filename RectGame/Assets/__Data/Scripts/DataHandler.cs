@@ -6,15 +6,8 @@ public class DataHandler : MonoBehaviour
 {
     [SerializeField] private GameData gameData;
 
+    public float InitScore => gameData.InitScore;
     
-    public GameData Init(int xLen, int yLen)
-    {
-        gameData.xLen = xLen;
-        gameData.yLen = yLen;
-
-        return gameData;
-    }
-
     public GameData Init(GameData data)
     {
         gameData = data;

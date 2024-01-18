@@ -13,8 +13,9 @@ public partial class GameManager : SingletonManager<GameManager>
    {
       Auth,
       ResourceCheck,
-      GameWait,
+      GameSettingInit,
       GameInit,
+      GameWait,
       Game,
       GameResult,
    }
@@ -34,7 +35,7 @@ public partial class GameManager : SingletonManager<GameManager>
 
    private void Start()
    {
-      ChangeState(GameState.Auth);
+      ChangeState(this, GameState.Auth);
    }
 }
 
@@ -42,8 +43,9 @@ public partial class GameManager
 {
    [Header("[ Debug ]")]
    [SerializeField] private GameState state = GameState.Auth;
-   
-   private void ChangeState(GameState newGameState)
+
+   #region ChangeState
+   public void ChangeState(Component sender, GameState newGameState)
    {
       state = newGameState;
 
@@ -55,11 +57,14 @@ public partial class GameManager
          case GameState.ResourceCheck:
             ResourceCheck();
             break;
-         case GameState.GameWait:
-            GameWait();
+         case GameState.GameSettingInit:
+            GameSettingInit();
             break;
          case GameState.GameInit:
             GameInit();
+            break;
+         case GameState.GameWait:
+            GameWait();
             break;
          case GameState.Game:
             Game();
@@ -71,34 +76,44 @@ public partial class GameManager
             throw new ArgumentOutOfRangeException();
       }
    }
+   #endregion
 
    private void Auth()
    {
-      UIManager.Instance.OffPopupAll();
-      
-      ChangeState(GameState.ResourceCheck);
+      ChangeState(this, GameState.ResourceCheck);
    }
 
    private void ResourceCheck()
    {
-      ChangeState(GameState.GameWait);
+      ChangeState(this, GameState.GameSettingInit);
    }
 
-   private async void GameWait()
+   private async void GameSettingInit()
    {
       var gameData = await _cardHandler.CardAddOnly();
       _ = _dataHandler.Init(gameData);
-      _ = _scoreHandler.Init(gameData.score, _dataHandler.OnScoreUpdate, OnLose);
       
-      ChangeState(GameState.GameInit);
+      ChangeState(this, GameState.GameInit);
    }
 
    private void GameInit()
    {
+      UIManager.Instance.OffPopupAll();
+      
+      _ = _scoreHandler.Init(_dataHandler.InitScore, _dataHandler.OnScoreUpdate, OnLose);
       _cardHandler.CardInit();
       _dataHandler.Reset();
+
+      ChangeState(this, GameState.GameWait);
+   }
+
+   private async void GameWait()
+   {
+      var uiGameWait = UIManager.Instance.GetPopup<UIGameWait>();
+
+      // await uiGameWait.OnGameWait();
       
-      ChangeState(GameState.Game);
+      ChangeState(this, GameState.Game);
    }
 
    private void Game()
@@ -139,7 +154,7 @@ public partial class GameManager
    {
       _isWin = _dataHandler.OnCorrect();
 
-      if (_isWin) ChangeState(GameState.GameResult);
+      if (_isWin) ChangeState(this, GameState.GameResult);
 
       return _isWin;
    }
@@ -149,7 +164,7 @@ public partial class GameManager
    {
       _isWin = false;
       
-      ChangeState(GameState.GameResult);
+      ChangeState(this, GameState.GameResult);
    }
 
    private void Win()
