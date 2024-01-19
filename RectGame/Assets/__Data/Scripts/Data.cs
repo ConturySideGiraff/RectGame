@@ -24,5 +24,6 @@ public class GameData
     }
     
     public int CardCount => xLen * yLen;
+    
     public float InitScore => CardCount * (CardCount - 1) * 0.5f * ScoreHandler.InitMultiple;
 }

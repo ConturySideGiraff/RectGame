@@ -370,8 +370,10 @@
 "Assets/__Data/Scripts/UI/UIGameWait.cs"
 "Assets/__Data/Scripts/UI/UIManager.cs"
 "Assets/__Data/Scripts/UI/UIResult.cs"
+"Assets/__Data/Scripts/UI/UISetting.cs"
 "Assets/__Data/Scripts/UI/UIShop.cs"
 "Assets/__Data/Scripts/Util.cs"
+"Assets/__Data/Scripts/Utils/ReadOnlyAttributeDrawer.cs"
 "Assets/__Data/Scripts/VersionHandler.cs"
 -langversion:9.0
 

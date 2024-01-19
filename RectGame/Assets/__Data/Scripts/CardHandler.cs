@@ -19,22 +19,28 @@ public enum CardState
 public class CardHandler : MonoBehaviour
 {
     [Header("[ Debug ]")]
-    [SerializeField] private CardBehaviour prevCard;
-    [SerializeField] private CardBehaviour nowCard;
+    [SerializeField, ReadOnly] private CardBehaviour prevCard;
+    [SerializeField, ReadOnly] private CardBehaviour nowCard;
     
+    [FormerlySerializedAs("xLen")]
     [Header("[ Data Option ]")]
-    [SerializeField] private int xLen = 3;
-    [SerializeField] private int yLen = 4;
+    [SerializeField] private int defaultXLen = 3;
+    [SerializeField] private int defaultYLen = 4;
     [Space]
-    [SerializeField] private int width = 150;
-    [SerializeField] private int height = 300;
+    [SerializeField] private int defaultWidth = 150;
+    [SerializeField] private int defaultHeight = 300;
     [Space] 
-    [SerializeField] private int xSpace = 15;
-    [SerializeField] private int ySpace = 30;
+    [SerializeField] private int defaultXSpace = 15;
+    [SerializeField] private int defaultYSpace = 30;
     [Space]
     [SerializeField] private CardSpawnPool<CardBehaviour> cardSpawnPool;
     [SerializeField] private List<Sprite> cardBackSpriteList = new List<Sprite>();
     [SerializeField] private List<Sprite> cardFrontSpriteList = new List<Sprite>();
+    
+    //
+
+    private int _xLen;
+    private int _yLen;
     
     //
     
@@ -43,8 +49,8 @@ public class CardHandler : MonoBehaviour
 
     //
     
-    public bool IsCanFlip =>  nowCard == null;
-    private int TotalCount => xLen * yLen;
+    public bool IsCanFlip => nowCard == null;
+    private int TotalCount => _xLen * _yLen;
     
     //
 
@@ -53,23 +59,23 @@ public class CardHandler : MonoBehaviour
         _cardUI = UIManager.Instance.GetDisplay<UIGame>();
     }
 
-    public async UniTask<GameData> CardAddOnly()
+    public async UniTask<GameData> CardAddOnly(int xLen = -1, int yLen = -1)
     {
         // get ui, layer
         _cardLayerTr = _cardUI.Layer(0);
         
         // card count clamp
-        var previousXLen = xLen;
-        var previousYLen = yLen;
+        var previousXLen = xLen < 2 ? defaultXLen : xLen;
+        var previousYLen = yLen < 2 ? defaultYLen : yLen;
         
-        _cardUI.ClampCount(xLen, yLen, width, height, xSpace, ySpace,
+        _cardUI.ClampCount(previousXLen, previousYLen, defaultWidth, defaultHeight, defaultXSpace, defaultYSpace,
             (xClampLen, yClampLen) =>
             {
-                xLen = xClampLen;
-                yLen = yClampLen;
+                _xLen = xClampLen;
+                _yLen = yClampLen;
             });
         
-        Debug.Log($"card count : [{previousXLen},{previousYLen}] => [{xLen},{yLen}] = {xLen * yLen}");
+        Debug.Log($"card count : [{previousXLen},{previousYLen}] => [{_xLen},{_yLen}][{_xLen * _yLen}]");
         
         // card only spawn, active off, show back sprite
         var spawnCount = TotalCount - cardSpawnPool.Count;
@@ -80,7 +86,7 @@ public class CardHandler : MonoBehaviour
         }
         
         // card count
-        return new GameData(xLen, yLen);
+        return new GameData(_xLen, _yLen);
     }
 
     public void CardInit()

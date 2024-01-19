@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class DataHandler : MonoBehaviour
 {
-    [SerializeField] private GameData gameData;
+    [Header("[ Debug ]")]
+    [SerializeField, ReadOnly] private GameData gameData;
 
     public float InitScore => gameData.InitScore;
     

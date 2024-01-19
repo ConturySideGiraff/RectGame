@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 public class CardSpawnPool<T> where T : CardBehaviour
 {
     [SerializeField] private T prefab;
-    [SerializeField] private List<T> poolList = new List<T>();
+    [SerializeField, ReadOnly] private List<T> poolList = new List<T>();
 
     public int Count => poolList.Count;
 

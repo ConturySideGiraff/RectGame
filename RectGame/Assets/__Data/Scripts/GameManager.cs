@@ -15,8 +15,9 @@ public partial class GameManager : SingletonManager<GameManager>
       ResourceCheck,
       GameSettingInit,
       GameInit,
-      GameWait,
+      GameStartWait,
       Game,
+      GamePause,
       GameResult,
    }
 
@@ -42,8 +43,10 @@ public partial class GameManager : SingletonManager<GameManager>
 public partial class GameManager
 {
    [Header("[ Debug ]")]
-   [SerializeField] private GameState state = GameState.Auth;
+   [SerializeField, ReadOnly] private GameState state = GameState.Auth;
 
+   public GameState State => state;
+   
    #region ChangeState
    public void ChangeState(Component sender, GameState newGameState)
    {
@@ -63,11 +66,14 @@ public partial class GameManager
          case GameState.GameInit:
             GameInit();
             break;
-         case GameState.GameWait:
+         case GameState.GameStartWait:
             GameWait();
             break;
          case GameState.Game:
             Game();
+            break;
+         case GameState.GamePause:
+            GamePause();
             break;
          case GameState.GameResult:
             GameResult();
@@ -90,6 +96,9 @@ public partial class GameManager
 
    private async void GameSettingInit()
    {
+      // TODO 1. 네트워크 연결 시 해당 정보를 기반으로 카드 개수를 산정
+      // TODO 2. 해당 개수를 파라미터로 넘겨주어 값을 확인
+      
       var gameData = await _cardHandler.CardAddOnly();
       _ = _dataHandler.Init(gameData);
       
@@ -104,10 +113,10 @@ public partial class GameManager
       _cardHandler.CardInit();
       _dataHandler.Reset();
 
-      ChangeState(this, GameState.GameWait);
+      ChangeState(this, GameState.GameStartWait);
    }
 
-   private async void GameWait()
+   private void GameWait()
    {
       var uiGameWait = UIManager.Instance.GetPopup<UIGameWait>();
 
@@ -118,11 +127,24 @@ public partial class GameManager
 
    private void Game()
    {
+      UIManager.Instance.OffPopupAll();
+
+      Time.timeScale = 1.0f;
+      
       _scoreHandler.SetReduce(true);
    }
-   
+
+   private void GamePause()
+   {
+      Time.timeScale = 0.0f;
+
+      _scoreHandler.SetReduce(false);
+   }
+
    private void GameResult()
    {
+      UIManager.Instance.OffPopupAll();
+      
       _scoreHandler.SetReduce(false);
 
       var uiResult = UIManager.Instance.GetPopup<UIResult>();

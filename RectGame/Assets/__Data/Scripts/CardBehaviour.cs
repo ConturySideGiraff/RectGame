@@ -3,14 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class CardBehaviour : MonoBehaviour
 {
-    [SerializeField] 
-    private CardState state;
+    [Header("[ Debug ]")]
+    [SerializeField] private CardState state;
     
     private const float OpenTime = 1.0f;
     private const float CloseTime = 0.5f;
@@ -25,6 +26,8 @@ public class CardBehaviour : MonoBehaviour
     private Func<CardBehaviour, CardState> _onFlip;
     private Action<CardState> _onResult;
 
+    private Quaternion _targetQuaternion;
+    
     public int Index { get; private set; }
     
     public void InitComponent(int index, Sprite backSprite, Sprite frontSprite, Func<CardBehaviour, CardState> onFlip, Action<CardState> onResult)
@@ -117,8 +120,8 @@ public class CardBehaviour : MonoBehaviour
         for (float t = 0.0f; t <= halfTime; t += Time.deltaTime)
         {
             percent = t / totalTime;
-            transform.localRotation = Quaternion.Lerp(startRot, endRot, percent);
-            await UniTask.Yield();
+            _targetQuaternion = Quaternion.Lerp(startRot, endRot, percent);
+            await UniTask.Yield(PlayerLoopTiming.Update);
         }
 
         _image.sprite = changeSprite;
@@ -126,10 +129,18 @@ public class CardBehaviour : MonoBehaviour
         for (float t = halfTime; t <= totalTime; t += Time.deltaTime)
         {
             percent = t / totalTime;
-            transform.localRotation = Quaternion.Lerp(startRot, endRot, percent);
-            await UniTask.Yield();
+            _targetQuaternion = Quaternion.Lerp(startRot, endRot, percent);
+            await UniTask.Yield(PlayerLoopTiming.Update);
         }
 
         return changeState;
+    }
+
+    private void Update()
+    {
+        if(state != CardState.Rotating)
+            return;
+
+        transform.localRotation = _targetQuaternion;
     }
 }

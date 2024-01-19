@@ -7,8 +7,8 @@ using UnityEngine.Serialization;
 public class ScoreHandler : MonoBehaviour
 {
     [Header("[ Debug ]")]
-    [SerializeField] private float initScore;
-    [SerializeField] private float currentScore;
+    [SerializeField, ReadOnly] private float initScore;
+    [SerializeField, ReadOnly] private float currentScore;
 
     public const float InitMultiple = 5;
     private const float ReduceMultiple = 2;
@@ -30,7 +30,7 @@ public class ScoreHandler : MonoBehaviour
     }
 
     public void SetReduce(bool isReduce) => _isReduce = isReduce;
-    
+
     private void Awake()
     {
         _uiBanner = UIManager.Instance.GetDisplay<UIBanner>();
