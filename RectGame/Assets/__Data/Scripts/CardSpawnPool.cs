@@ -8,22 +8,23 @@ using Object = UnityEngine.Object;
 [Serializable]
 public class CardSpawnPool<T> where T : CardBehaviour
 {
-    [SerializeField] private T prefab;
-    [SerializeField, ReadOnly] private List<T> poolList = new List<T>();
-
-    public int Count => poolList.Count;
-
+    private T _prefab;
+    private List<T> _poolList = new List<T>();
     private Transform _currentLayerTransform;
     
-    public T AddOnly(Transform layerTransform)
+    
+    public int Count => _poolList.Count;
+
+    public T AddOnly(Transform layerTransform, T prefab)
     {
+        _prefab = prefab;
         _currentLayerTransform = layerTransform;
         
         var card = Object.Instantiate(prefab, layerTransform);
         card.name = $"card_{card.transform.GetSiblingIndex()}";
         card.gameObject.SetActive(false);
 
-        poolList.Add(card);
+        _poolList.Add(card);
 
         return card;
     }
@@ -34,14 +35,14 @@ public class CardSpawnPool<T> where T : CardBehaviour
 
         if (requireCount > 0)
         {
-            return poolList.GetRange(0, count);
+            return _poolList.GetRange(0, count);
         }
         
         foreach (var i in Enumerable.Range(0, requireCount))
         {
-            AddOnly(_currentLayerTransform);
+            AddOnly(_currentLayerTransform, _prefab);
         }
 
-        return poolList;
+        return _poolList;
     }
 }

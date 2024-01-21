@@ -18,75 +18,56 @@ public enum CardState
 
 public class CardHandler : MonoBehaviour
 {
+    [Header("[ Prefab ]")] 
+    [SerializeField] private CardBehaviour prefab;
+    [SerializeField] private GridData grid;
+
     [Header("[ Debug ]")]
     [SerializeField, ReadOnly] private CardBehaviour prevCard;
     [SerializeField, ReadOnly] private CardBehaviour nowCard;
-    
-    [FormerlySerializedAs("xLen")]
-    [Header("[ Data Option ]")]
-    [SerializeField] private int defaultXLen = 3;
-    [SerializeField] private int defaultYLen = 4;
-    [Space]
-    [SerializeField] private int defaultWidth = 150;
-    [SerializeField] private int defaultHeight = 300;
-    [Space] 
-    [SerializeField] private int defaultXSpace = 15;
-    [SerializeField] private int defaultYSpace = 30;
-    [Space]
-    [SerializeField] private CardSpawnPool<CardBehaviour> cardSpawnPool;
-    [SerializeField] private List<Sprite> cardBackSpriteList = new List<Sprite>();
-    [SerializeField] private List<Sprite> cardFrontSpriteList = new List<Sprite>();
-    
-    //
 
-    private int _xLen;
-    private int _yLen;
-    
-    //
-    
-    private UIGame _cardUI;
+    private DataManager _dataManager;
+    private CardSpawnPool<CardBehaviour> _cardSpawnPool;
     private Transform _cardLayerTr;
-
-    //
+    private UIGame _cardUI;
     
     public bool IsCanFlip => nowCard == null;
-    private int TotalCount => _xLen * _yLen;
-    
-    //
 
     private void Awake()
     {
         _cardUI = UIManager.Instance.GetDisplay<UIGame>();
+        _dataManager = DataManager.Instance;
+        _cardSpawnPool = new CardSpawnPool<CardBehaviour>();
     }
 
-    public async UniTask<GameData> CardAddOnly(int xLen = -1, int yLen = -1)
+    public async UniTask<GameData> CardAddOnly(int xLen = -1, int yLen = -1, int width = -1, int height = -1, int xSpace = -1, int ySpace = -1)
     {
         // get ui, layer
         _cardLayerTr = _cardUI.Layer(0);
         
         // card count clamp
-        var previousXLen = xLen < 2 ? defaultXLen : xLen;
-        var previousYLen = yLen < 2 ? defaultYLen : yLen;
+        var previousXLen = xLen < 2 ? grid.xLen : xLen;
+        var previousYLen = yLen < 2 ? grid.yLen : yLen;
         
-        _cardUI.ClampCount(previousXLen, previousYLen, defaultWidth, defaultHeight, defaultXSpace, defaultYSpace,
+        _cardUI.ClampCount(previousXLen, previousYLen, grid.xScale, grid.yScale, grid.xSpace, grid.ySpace,
             (xClampLen, yClampLen) =>
             {
-                _xLen = xClampLen;
-                _yLen = yClampLen;
+                grid.xLen = xClampLen;
+                grid.yLen = yClampLen;
             });
         
-        Debug.Log($"card count : [{previousXLen},{previousYLen}] => [{_xLen},{_yLen}][{_xLen * _yLen}]");
+        Debug.Log($"card count : [{previousXLen},{previousYLen}] => [{grid.xLen},{grid.yLen}]");
         
         // card only spawn, active off, show back sprite
-        var spawnCount = TotalCount - cardSpawnPool.Count;
+        var spawnCount = grid.CardCount - _cardSpawnPool.Count;
         for (var i = 0; i < spawnCount; i++)
         {
-            _ = cardSpawnPool.AddOnly(_cardLayerTr);
+            _ = _cardSpawnPool.AddOnly(_cardLayerTr, prefab);
             await UniTask.Yield();
         }
         
         // card count
-        return new GameData(_xLen, _yLen);
+        return new GameData(grid.xLen, grid.yLen, grid.xScale, grid.yScale, grid.xSpace, grid.ySpace);
     }
 
     public void CardInit()
@@ -94,8 +75,8 @@ public class CardHandler : MonoBehaviour
         // card front image pick
         List<int> frontPickSource = new List<int>();
 
-        int totalCount = TotalCount;
-        int frontCount = cardFrontSpriteList.Count * 2;
+        int totalCount = grid.CardCount;
+        int frontCount = _dataManager.CardFrontSpriteList.Count * 2;
         
         int quo = totalCount / frontCount;
         int remain = totalCount % frontCount;
@@ -104,7 +85,7 @@ public class CardHandler : MonoBehaviour
         {
             for (int j = 0; j < 2; j++)
             {
-                int[] source = Util.GetNoneOverlapNumbers(cardFrontSpriteList.Count);
+                int[] source = Util.GetNoneOverlapNumbers(_dataManager.CardFrontSpriteList.Count);
                 frontPickSource.AddRange(source);
             }
         }
@@ -112,7 +93,7 @@ public class CardHandler : MonoBehaviour
         if (remain > 0)
         {
             int pickCount = remain / 2;
-            int[] source = Util.GetNoneOverlapNumbers(cardFrontSpriteList.Count, pickCount);
+            int[] source = Util.GetNoneOverlapNumbers(_dataManager.CardFrontSpriteList.Count, pickCount);
 
             for (int i = 0; i < 2; i++)
             {
@@ -124,16 +105,16 @@ public class CardHandler : MonoBehaviour
         }
 
         // card back image pick
-        var backPick = Random.Range(0, cardBackSpriteList.Count);
+        var backPick = Random.Range(0, _dataManager.CardBackSpriteList.Count);
 
         // card active on
-        var spawnList = cardSpawnPool.GetSpawnList(TotalCount);
+        var spawnList = _cardSpawnPool.GetSpawnList(grid.CardCount);
         for (var i = 0; i < totalCount; i++)
         {
             var card = spawnList[i];
             var index = frontPickSource[i];
-            var frontSprite = cardFrontSpriteList[index];
-            var backSprite = cardBackSpriteList[backPick];
+            var frontSprite = _dataManager.CardFrontSpriteList[index];
+            var backSprite = _dataManager.CardBackSpriteList[backPick];
             
             card.InitComponent(index, backSprite, frontSprite, OnFlip, OnResult);
             card.VisualStart(true);

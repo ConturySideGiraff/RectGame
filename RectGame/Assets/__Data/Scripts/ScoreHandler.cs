@@ -6,12 +6,12 @@ using UnityEngine.Serialization;
 
 public class ScoreHandler : MonoBehaviour
 {
+    [Header("[ Option ]")] 
+    [SerializeField] private float reduceValue = 10.0f;
+    
     [Header("[ Debug ]")]
     [SerializeField, ReadOnly] private float initScore;
     [SerializeField, ReadOnly] private float currentScore;
-
-    public const float InitMultiple = 5;
-    private const float ReduceMultiple = 2;
 
     private UIBanner _uiBanner;
     private Action<float> _onDataAction;
@@ -40,7 +40,7 @@ public class ScoreHandler : MonoBehaviour
     {
         if(!_isReduce) return;
 
-        currentScore = Mathf.Clamp(currentScore - Time.deltaTime * ReduceMultiple, 0, initScore) ;
+        currentScore = Mathf.Clamp(currentScore - Time.deltaTime * DataManager.Instance.Level * reduceValue , 0, initScore) ;
 
         _onDataAction.Invoke(currentScore);
         _uiBanner.ScoreUpdate(currentScore);

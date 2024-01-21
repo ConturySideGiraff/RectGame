@@ -21,17 +21,21 @@ public partial class GameManager : SingletonManager<GameManager>
       GameResult,
    }
 
+   // Component
    private CardHandler _cardHandler;
-   private DataHandler _dataHandler;
    private ScoreHandler _scoreHandler;
    private VersionHandler _versionHandler;
+   
+   // Instance
+   private DataManager _dataManager;
 
    private void Awake()
    {
       _cardHandler = FindObjectOfType<CardHandler>();
-      _dataHandler = FindObjectOfType<DataHandler>();
       _scoreHandler = FindObjectOfType<ScoreHandler>();
       _versionHandler = FindObjectOfType<VersionHandler>();
+
+      _dataManager = DataManager.Instance;
    }
 
    private void Start()
@@ -96,11 +100,10 @@ public partial class GameManager
 
    private async void GameSettingInit()
    {
-      // TODO 1. 네트워크 연결 시 해당 정보를 기반으로 카드 개수를 산정
-      // TODO 2. 해당 개수를 파라미터로 넘겨주어 값을 확인
+      _ = _dataManager.LevelLoad();
       
       var gameData = await _cardHandler.CardAddOnly();
-      _ = _dataHandler.Init(gameData);
+      _ = _dataManager.Init(gameData);
       
       ChangeState(this, GameState.GameInit);
    }
@@ -109,9 +112,9 @@ public partial class GameManager
    {
       UIManager.Instance.OffPopupAll();
       
-      _ = _scoreHandler.Init(_dataHandler.InitScore, _dataHandler.OnScoreUpdate, OnLose);
+      _ = _scoreHandler.Init(_dataManager.InitScore, _dataManager.OnScoreUpdate, OnLose);
       _cardHandler.CardInit();
-      _dataHandler.Reset();
+      _dataManager.Reset();
 
       ChangeState(this, GameState.GameStartWait);
    }
@@ -148,7 +151,7 @@ public partial class GameManager
       _scoreHandler.SetReduce(false);
 
       var uiResult = UIManager.Instance.GetPopup<UIResult>();
-      var data = _dataHandler.GetData(this);
+      var data = _dataManager.GetData(this);
 
       if (_isWin)
       {
@@ -174,7 +177,7 @@ public partial class GameManager
    
    public bool OnWin()
    {
-      _isWin = _dataHandler.OnCorrect();
+      _isWin = _dataManager.OnCorrect();
 
       if (_isWin) ChangeState(this, GameState.GameResult);
 
